@@ -1,29 +1,24 @@
 import dotenv from "dotenv";
-import { z } from "zod";
 
 dotenv.config();
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]),
+function getEnv(name: string): string {
+  const value = process.env[name];
 
-  PORT: z.coerce.number(),
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`);
+  }
 
-  DATABASE_URL: z.string(),
-
-  JWT_ACCESS_SECRET: z.string().min(32),
-
-  JWT_REFRESH_SECRET: z.string().min(32),
-
-  ACCESS_TOKEN_EXPIRES_IN: z.string(),
-
-  REFRESH_TOKEN_EXPIRES_IN: z.string(),
-});
-
-const parsed = envSchema.safeParse(process.env);
-
-if (!parsed.success) {
-  console.error(z.treeifyError(parsed.error));
-  process.exit(1);
+  return value;
 }
 
-export const env = parsed.data;
+export const env = {
+  PORT: Number(process.env.PORT) || 5000,
+  NODE_ENV: process.env.NODE_ENV || "development",
+
+  ACCESS_TOKEN_SECRET: getEnv("ACCESS_TOKEN_SECRET"),
+  REFRESH_TOKEN_SECRET: getEnv("REFRESH_TOKEN_SECRET"),
+
+  ACCESS_TOKEN_EXPIRES_IN: "1d",
+  REFRESH_TOKEN_EXPIRES_IN: "7d"
+} as const;
