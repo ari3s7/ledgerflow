@@ -1,4 +1,4 @@
-import type { Request, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../common/errors/AppError.js";
 import { verifyAccessToken, type JwtPayload } from "../utils/jwt.js";
 import { prisma } from "../lib/prisma.js";
