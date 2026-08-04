@@ -46,5 +46,12 @@ export async function loginController(
     );
   } catch (error) {
     next(error);
-  }
+  };
 }
+
+export function getMeController(req: Request, res: Response) {
+  return res.status(200).json(
+    ApiResponse.success("User fetched successfully", req.user)
+  );
+}
+

@@ -73,5 +73,26 @@ const SALT_ROUNDS = 10;
             role: user.role,
         },
       };
+    },
+    async getMe(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new AppError(404, "User not found");
     }
+
+    return user;
+  },
 }
