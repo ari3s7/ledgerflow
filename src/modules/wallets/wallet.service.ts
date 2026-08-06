@@ -50,5 +50,28 @@ export const walletService = {
             createdAt: "desc",
         }
     })
+  },
+
+  async getById(userId: string, walletId: string){
+    const wallet = await prisma.wallet.findFirst({
+        where: {
+            id: walletId,
+            userId,
+            isActive: true,
+        }, select: {
+            id: true,
+            name: true,
+            currency: true,
+            balance: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true
+        },
+    });
+
+    if(!wallet){
+        throw new AppError(404, "Wallet not found")
+    }
+    return wallet;
   }
 }
