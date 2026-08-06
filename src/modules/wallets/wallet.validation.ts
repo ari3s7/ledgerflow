@@ -6,4 +6,9 @@ export const createWalletSchema = z.object({
     .max(50, "Wallet name cannot exceed 50 characters"),
 })
 
+export const walletParamSchema = z.object({
+    walletId: z.string(),
+})
+
 export type CreateWalletInput = z.infer<typeof createWalletSchema>
+export type WalletParams = z.infer<typeof walletParamSchema>
