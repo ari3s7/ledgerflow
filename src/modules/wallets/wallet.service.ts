@@ -3,7 +3,8 @@ import { prisma } from "../../lib/prisma.js";
 import type { CreateWalletInput } from "./wallet.validation.js";
 
 
-export async function createWallet(userId: string, data: CreateWalletInput) {
+export const walletService = {
+    async create(userId: string, data: CreateWalletInput) {
     const existingWallet = await prisma.wallet.findFirst({
         where: {
             userId,
@@ -29,4 +30,25 @@ export async function createWallet(userId: string, data: CreateWalletInput) {
         }
     });
     return wallet;
+  },
+
+  async getAll(userId: string){
+    return prisma.wallet.findMany({
+        where: {
+            userId,
+            isActive: true,
+        },
+        select: {
+            id: true,
+            name: true,
+            currency: true,
+            balance: true,
+            isActive: true,
+            createdAt: true
+        },
+        orderBy: {
+            createdAt: "desc",
+        }
+    })
+  }
 }

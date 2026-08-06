@@ -1,11 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
-import { createWallet } from "./wallet.service.js";
+import { walletService } from "./wallet.service.js";
 import { ApiResponse } from "../../common/responses/api-response.js";
 
 
 export async function createWalletController(req: Request, res:Response, next:NextFunction){
     try {
-        const wallet = await createWallet(req.user!.id, req.body);
+        const wallet = await walletService.create(req.user!.id, req.body);
 
         return  res.status(201).json(
             ApiResponse.success("Wallet created successfully", wallet)
@@ -13,4 +13,16 @@ export async function createWalletController(req: Request, res:Response, next:Ne
     } catch(error){
         next(error)
     }
+}
+
+export async function getWalletController(req: Request, res: Response, next: NextFunction) {
+   try{
+      const wallets = await walletService.getAll(req.user!.id);
+
+      return res.status(200).json(
+        ApiResponse.success("Wallet fetched successfully", wallets)
+      );
+   } catch(error){
+    next(error);
+   }
 }
