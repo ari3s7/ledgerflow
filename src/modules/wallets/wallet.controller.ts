@@ -33,9 +33,21 @@ export async function getWalletByIdController(req: Request<WalletParams>, res: R
         const wallet = await walletService.getById(req.user!.id, req.params.walletId);
 
         return res.status(200).json(
-            ApiResponse.success("Wallet fetched successfully")
+            ApiResponse.success("Wallet fetched successfully", wallet)
         )
     } catch(error){
         next(error)
+    }
+}
+
+export async function updateWalletController(req: Request<WalletParams>, res: Response, next: NextFunction){
+    try{
+        const wallet = await walletService.update(req.user!.id, req.params.walletId, req.body)
+
+        return res.status(200).json(
+            ApiResponse.success("Wallet updated successfully", wallet)
+        );
+    } catch(error){
+        next(error);
     }
 }
