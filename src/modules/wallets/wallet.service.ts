@@ -116,5 +116,35 @@ export const walletService = {
         updatedAt: true,
     },
   })
-  }
+  },
+
+  async deactivate(userId: string, walletId: string) {
+    const wallet = await prisma.wallet.findFirst({
+        where: {
+            id: walletId,
+            userId,
+            isActive: true,
+        },
+    });
+    if (!wallet) {
+        throw new AppError(404, "Wallet not found");
+    }
+
+    if (wallet.balance.gt(0)) {
+        throw new AppError(400,"Cannot deactivate a wallet with a non-zero balance");
+    }
+    return prisma.wallet.update({
+        where: {
+            id: walletId,
+        }, data: {
+            isActive: false
+        },
+        select: {
+            id: true,
+            name: true,
+            isActive: true,
+            updatedAt: true,
+        },
+    });
+  },
 }

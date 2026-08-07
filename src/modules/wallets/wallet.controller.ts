@@ -51,3 +51,14 @@ export async function updateWalletController(req: Request<WalletParams>, res: Re
         next(error);
     }
 }
+
+export async function deactivateController(req: Request<WalletParams>, res: Response, next: NextFunction) {
+    try {const wallet = await walletService.deactivate(req.user!.id, req.params.walletId)
+
+    return res.status(200).json(
+        ApiResponse.success("Wallet deactivated successfully", wallet)
+    );
+  } catch(error){
+    next(error)
+}
+}
