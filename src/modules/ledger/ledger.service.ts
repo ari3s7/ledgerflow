@@ -1,6 +1,6 @@
 import { AppError } from "../../common/errors/AppError.js";
 import { prisma } from "../../lib/prisma.js";
-import type { DepositInput } from "./ledger.validation.js";
+import type { DepositInput, TransferInput } from "./ledger.validation.js";
 
 
 export async function deposit(userId: string, walletId: string, data: DepositInput){
@@ -52,4 +52,35 @@ export async function deposit(userId: string, walletId: string, data: DepositInp
     });
 
     return result;
-}
+};
+
+export async function transfer(userId: string, data: TransferInput){
+    const [fromWallet, toWallet]  = await Promise.all([
+        prisma.wallet.findFirst({
+        where: {
+            id: data.fromWalletId,
+            userId,
+            isActive: true,
+        }   
+    }),
+    prisma.wallet.findFirst({
+        where: {
+            id: data.toWalletId,
+            userId,
+            isActive: true,
+        },
+     }),
+    ]);
+
+    if(!fromWallet){
+        throw new AppError(404, "Source wallet not found")
+    }
+
+    if(!toWallet){
+        throw new AppError(404, "Destination wallet not found")
+    }
+
+    if(fromWallet.balance.lt(data.amount)) {
+        throw new AppError(400, "Insufficient balance")
+    }
+} 
