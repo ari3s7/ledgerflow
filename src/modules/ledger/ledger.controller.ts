@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import type { DepositInput, TransferInput } from "./ledger.validation.js";
-import { deposit, transfer } from "./ledger.service.js";
+import type { DepositInput, TransactionQueryInput, TransferInput } from "./ledger.validation.js";
+import { deposit, getTransactions, transfer } from "./ledger.service.js";
 import { ApiResponse } from "../../common/responses/api-response.js";
 
 
@@ -32,6 +32,28 @@ export async function transferController(
       ApiResponse.success(
         "Transfer successful",
         transaction
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTransactionsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const transactions = await getTransactions(
+      req.user!.id,
+      req.query as unknown as TransactionQueryInput
+    );
+
+    return res.status(200).json(
+      ApiResponse.success(
+        "Transactions fetched successfully",
+        transactions
       )
     );
   } catch (error) {

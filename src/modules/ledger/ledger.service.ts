@@ -1,7 +1,7 @@
 import { Prisma } from "../../../generated/prisma/client.js";
 import { AppError } from "../../common/errors/AppError.js";
 import { prisma } from "../../lib/prisma.js";
-import type { DepositInput, TransferInput } from "./ledger.validation.js";
+import type { DepositInput, TransactionQueryInput, TransferInput } from "./ledger.validation.js";
 
 
 export async function deposit(userId: string, walletId: string, data: DepositInput){
@@ -153,3 +153,63 @@ export async function transfer(userId: string, data: TransferInput){
      });
     });
 } 
+
+export async function getTransactions(
+  userId: string,
+  query: TransactionQueryInput
+) {
+  const { walletId, type, status, limit } = query;
+
+  return prisma.transaction.findMany({
+    where: {
+      ledgerEntries: {
+        some: {
+          wallet: {
+            userId,
+          },
+          ...(walletId && {
+            walletId,
+          }),
+        },
+      },
+
+      ...(type && {
+        type,
+      }),
+
+      ...(status && {
+        status,
+      }),
+    },
+
+    select: {
+      id: true,
+      reference: true,
+      amount: true,
+      type: true,
+      status: true,
+      description: true,
+      createdAt: true,
+
+      ledgerEntries: {
+        select: {
+          walletId: true,
+          entryType: true,
+          amount: true,
+
+          wallet: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    take: limit,
+  });
+}
