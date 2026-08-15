@@ -37,6 +37,8 @@ export const transactionQuerySchema = z.object({
     .positive()
     .max(100)
     .default(20),
+
+  cursor: z.string().optional(),
 });
 
 export type TransferInput = z.infer<typeof transferSchema>

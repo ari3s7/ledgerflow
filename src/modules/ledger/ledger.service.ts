@@ -152,15 +152,21 @@ export async function transfer(userId: string, data: TransferInput){
         },
      });
     });
-} 
+}
 
 export async function getTransactions(
   userId: string,
   query: TransactionQueryInput
 ) {
-  const { walletId, type, status, limit } = query;
+  const {
+    walletId,
+    type,
+    status,
+    limit,
+    cursor,
+  } = query;
 
-  return prisma.transaction.findMany({
+  const transactions = await prisma.transaction.findMany({
     where: {
       ledgerEntries: {
         some: {
@@ -206,10 +212,38 @@ export async function getTransactions(
       },
     },
 
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {
+        createdAt: "desc",
+      },
+      {
+        id: "desc",
+      },
+    ],
 
-    take: limit,
+    take: limit + 1,
+
+    ...(cursor && {
+      cursor: {
+        id: cursor,
+      },
+      skip: 1,
+    }),
   });
+
+  const hasNextPage = transactions.length > limit;
+
+const result = hasNextPage
+  ? transactions.slice(0, limit)
+  : transactions;
+
+const nextCursor =
+  hasNextPage
+    ? result[result.length - 1]?.id ?? null
+    : null;
+
+return {
+  transactions: result,
+  nextCursor,
+};
 }
