@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import type { DepositInput, TransactionQueryInput, TransferInput } from "./ledger.validation.js";
-import { deposit, getTransactions, transfer } from "./ledger.service.js";
+import type { DepositInput, TransactionQueryInput, TransferInput, WalletStatementQueryInput } from "./ledger.validation.js";
+import { deposit, getTransactions, getWalletStatement, transfer } from "./ledger.service.js";
 import { ApiResponse } from "../../common/responses/api-response.js";
 
 
@@ -54,6 +54,34 @@ export async function getTransactionsController(
       ApiResponse.success(
         "Transactions fetched successfully",
         transactions
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+export async function getWalletStatementController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const walletId = req.params.walletId as string;
+
+    const query = req.query as unknown as WalletStatementQueryInput;
+
+    const statement = await getWalletStatement(
+      req.user!.id,
+      walletId,
+      query
+    );
+
+    return res.status(200).json(
+      ApiResponse.success(
+        "Wallet statement fetched successfully",
+        statement
       )
     );
   } catch (error) {

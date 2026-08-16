@@ -1,7 +1,7 @@
 import { Prisma } from "../../../generated/prisma/client.js";
 import { AppError } from "../../common/errors/AppError.js";
 import { prisma } from "../../lib/prisma.js";
-import type { DepositInput, TransactionQueryInput, TransferInput } from "./ledger.validation.js";
+import type { DepositInput, TransactionQueryInput, TransferInput, WalletStatementQueryInput } from "./ledger.validation.js";
 
 
 export async function deposit(userId: string, walletId: string, data: DepositInput){
@@ -246,4 +246,91 @@ return {
   transactions: result,
   nextCursor,
 };
+}
+
+
+export async function getWalletStatement(
+  userId: string,
+  walletId: string,
+  query: WalletStatementQueryInput
+) {
+  const { limit, cursor } = query;
+
+
+  const wallet = await prisma.wallet.findFirst({
+    where: {
+      id: walletId,
+      userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      currency: true,
+      balance: true,
+      isActive: true,
+    },
+  });
+
+  if (!wallet) {
+    throw new AppError(404, "Wallet not found");
+  }
+
+  const entries = await prisma.ledgerEntry.findMany({
+    where: {
+      walletId,
+    },
+
+    select: {
+      id: true,
+      entryType: true,
+      amount: true,
+      createdAt: true,
+
+      transaction: {
+        select: {
+          id: true,
+          reference: true,
+          amount: true,
+          type: true,
+          status: true,
+          description: true,
+          createdAt: true,
+        },
+      },
+    },
+
+    orderBy: [
+      {
+        createdAt: "desc",
+      },
+      {
+        id: "desc",
+      },
+    ],
+
+    take: limit + 1,
+
+    ...(cursor && {
+      cursor: {
+        id: cursor,
+      },
+      skip: 1,
+    }),
+  });
+
+  const hasNextPage = entries.length > limit;
+
+  const result = hasNextPage
+    ? entries.slice(0, limit)
+    : entries;
+
+  const nextCursor = hasNextPage
+    ? result[result.length - 1]?.id ?? null
+    : null;
+
+  return {
+    wallet,
+    entries: result,
+    nextCursor,
+  };
 }

@@ -41,6 +41,18 @@ export const transactionQuerySchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const walletStatementQuerySchema = z.object({
+  limit: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(100)
+    .default(20),
+
+  cursor: z.string().optional(),
+});
+
+export type WalletStatementQueryInput = z.infer<typeof walletStatementQuerySchema>;
 export type TransferInput = z.infer<typeof transferSchema>
 export type DepositInput = z.infer<typeof depositSchema>
 export type TransactionQueryInput = z.infer<typeof transactionQuerySchema>

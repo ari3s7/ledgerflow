@@ -1,25 +1,24 @@
 import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { AppError } from "../common/errors/AppError.js";
 
-export function validate<T>(schema: z.ZodType<T>) {
+type RequestPart = "body" | "query" | "params";
+
+export function validate(
+  schema: z.ZodType,
+  part: RequestPart = "body"
+) {
   return (
     req: Request,
     _res: Response,
     next: NextFunction
   ) => {
-    const result = schema.safeParse(req.body);
+    const result = schema.safeParse(req[part]);
 
     if (!result.success) {
-      return next(
-        new AppError(
-          400,
-          result.error.issues[0]?.message ?? "Validation failed"
-        )
-      );
+      return next(result.error);
     }
 
-    req.body = result.data;
+    req[part] = result.data;
 
     next();
   };
