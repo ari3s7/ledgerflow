@@ -48,6 +48,7 @@ model User {
 
   wallets       Wallet[]
   refreshTokens RefreshToken[]
+  idempotencyKeys IdempotencyKey[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,6 +95,7 @@ model Transaction {
   status TransactionStatus @default(PENDING)
 
   ledgerEntries LedgerEntry[]
+  idempotencyKey IdempotencyKey?
 
   description String?
   createdAt   DateTime @default(now())
@@ -119,4 +121,20 @@ model LedgerEntry {
   @@index([walletId])
   @@index([transactionId])
   @@index([createdAt])
+}
+
+model IdempotencyKey {
+  id            String   @id @default(cuid())
+
+  key           String
+  userId        String
+  transactionId String @unique
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, key])
+  @@index([transactionId])
 }
